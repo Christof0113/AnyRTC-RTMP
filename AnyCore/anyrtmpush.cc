@@ -286,8 +286,11 @@ void AnyRtmpPush::setMetaData(){
     uint8_t body[512] = {0};
     uint8_t* p = (uint8_t*)body;
     p = put_byte(p, AMF_STRING);
-    //p = put_be16(p, AMF_STRING_LEN);
+    p = put_amf_string(p, "@setDataFrame");
+
+    p = put_byte(p, AMF_STRING);
     p = put_amf_string(p, "onMetaData");
+
     p = put_byte(p, AMF_TYPE_ARRAY);
     p = put_be32(p, 9);
 
@@ -331,6 +334,9 @@ void AnyRtmpPush::setMetaData(){
     p = put_amf_string(p, "audiocodecid");
     p = put_byte(p, 0);
     p = put_amf_double(p, sound_format_);
+    
+    //object end 
+    p = put_be24(p, AMF_OBJECT_END);
 
     int len = p-body;
     setMetaData((uint8_t*)body, len, 0);
@@ -402,6 +408,8 @@ void AnyRtmpPush::Run()
 					srs_human_trace("SRS: publish stream ok.");
 					rtmp_status_ = RS_STM_Published;
 					CallConnect();
+					//send the metadata
+					setMetaData();
 				}
 				else {
 					CallDisconnect();
